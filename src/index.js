@@ -64,10 +64,9 @@ const getVisibleTodos = (todos, filter) => {
 }
 
 const todoApp = combineReducers({ todos, visibilityFilter });
-
 const store = createStore(todoApp);
 
-let newTodoId = 0;
+let nextTodoId = 0;
 
 const Todo = ({ onClick, completed, text }) => (
   <div onClick={onClick} style={{ textDecoration: completed ? 'line-through' : 'none', cursor: 'pointer' }}>
@@ -83,13 +82,17 @@ const TodoList = ({ todos, onTodoClick }) => (
   </div>
 );
 
-const AddTodo = ({ onAddClick }) => {
+const AddTodo = () => {
   let input;
   return (
     <div>
       <input ref={node => input = node} />
       <button onClick={() => {
-        onAddClick(input.value);
+        store.dispatch({
+          type: 'ADD_TODO',
+          id: nextTodoId++,
+          text: input.value
+        })
         input.value = '';
       }}>
         Add Todo
@@ -149,7 +152,33 @@ const Footer = () => (
   </p>
 );
 
-const TodoApp = ({ todos, visibilityFilter }) => (
+class VisibleTodoList extends Component {
+
+  componentDidMount() {
+    this.unsubscribe = store.subscribe(() => this.forceUpdate());
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  render() {
+    const props = this.props;
+    const state = store.getState();
+
+    return (
+      <TodoList
+        todos={
+          getVisibleTodos(state.todos, state.visibilityFilter)
+        }
+        onTodoClick={
+          id => store.dispatch({ type: 'TOGGLE_TODO', id })
+        } />
+    );
+  }
+}
+
+const TodoApp = () => (
   <div className="App">
 
     <header className="App-header">
@@ -159,29 +188,17 @@ const TodoApp = ({ todos, visibilityFilter }) => (
 
     <div className="App-intro">
       <br />
-
-      <AddTodo onAddClick={text => store.dispatch({ type: 'ADD_TODO', id: newTodoId++, text })} />
-
-      <br />
-      <br />
-
-      <TodoList
-        todos={getVisibleTodos(todos, visibilityFilter)}
-        onTodoClick={id => store.dispatch({ type: 'TOGGLE_TODO', id })} />
-
+      <AddTodo />
+      <br /><br />
+      <VisibleTodoList />
       <Footer />
-
     </div>
 
   </div>
 );
 
-const render = () => {
-  ReactDOM.render((
-    <TodoApp {...store.getState() } />
-  ), document.getElementById('root'));
-}
+ReactDOM.render((
+  <TodoApp />
+), document.getElementById('root'));
 
-store.subscribe(render);
-render();
 registerServiceWorker();
