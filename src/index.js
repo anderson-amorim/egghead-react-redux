@@ -8,6 +8,29 @@ import logo from './logo.svg';
 import './App.css';
 import registerServiceWorker from './registerServiceWorker';
 
+let nextTodoId = 0;
+const addTodo = (text) => {
+  return {
+    type: 'ADD_TODO',
+    id: nextTodoId++,
+    text
+  }
+}
+
+const setVisiilityFilter = (filter) => {
+  return {
+      type: 'SET_VISIBILITY_FILTER',
+      filter
+    } 
+}
+
+const toggleTodo = (id) => {
+  return {
+      type: 'TOGGLE_TODO',
+      id
+    } 
+}
+
 const todo = (state, action) => {
   switch (action.type) {
     case 'ADD_TODO':
@@ -65,8 +88,6 @@ const getVisibleTodos = (todos, filter) => {
   }
 }
 
-let nextTodoId = 0;
-
 const Todo = ({ onClick, completed, text }) => (
   <div onClick={onClick} style={{ textDecoration: completed ? 'line-through' : 'none', cursor: 'pointer' }}>
     {text}
@@ -87,11 +108,7 @@ let AddTodo = ({ dispatch }) => {
     <div>
       <input ref={node => input = node} />
       <button onClick={() => {
-        dispatch({
-          type: 'ADD_TODO',
-          id: nextTodoId++,
-          text: input.value
-        })
+        dispatch(addTodo(input.value))
         input.value = '';
       }}>
         Add Todo
@@ -125,10 +142,7 @@ const mapStateToButtonProps = (state, ownProps) => {
 
 const mapDispathToButtonProps = (dispatch, ownProps) => {
   return {
-    onClick: () => dispatch({
-      type: 'SET_VISIBILITY_FILTER',
-      filter: ownProps.filter
-    })
+    onClick: () => dispatch(setVisibilityFilter(ownProps.filter))
   }
 };
 
@@ -151,10 +165,7 @@ const mapStateToTodoListProps = (state) => {
 
 const mapDispatchToTodoListProps = (dispatch) => {
   return {
-    onTodoClick: id => dispatch({
-      type: 'TOGGLE_TODO',
-      id
-    })
+    onTodoClick: id => dispatch(toggleTodo(id))
   }
 };
 
