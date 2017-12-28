@@ -1,10 +1,11 @@
 import ReactDOM from 'react-dom';
-import './index.css';
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { combineReducers, createStore } from 'redux';
+import './index.css';
 import logo from './logo.svg';
 import './App.css';
 import registerServiceWorker from './registerServiceWorker';
-import { combineReducers, createStore } from 'redux';
 
 const todo = (state, action) => {
   switch (action.type) {
@@ -81,7 +82,7 @@ const TodoList = ({ todos, onTodoClick }) => (
   </div>
 );
 
-const AddTodo = ({ store }) => {
+const AddTodo = (props, { store }) => {
   let input;
   return (
     <div>
@@ -98,6 +99,9 @@ const AddTodo = ({ store }) => {
           </button>
     </div>
   );
+}
+AddTodo.contextTypes = {
+  store: PropTypes.object
 }
 
 const Button = ({ active, children, onClick }) => {
@@ -118,7 +122,7 @@ const Button = ({ active, children, onClick }) => {
 class FilterButton extends Component {
 
   componentDidMount() {
-    const { store } = this.props;
+    const { store } = this.context;
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
 
@@ -128,7 +132,7 @@ class FilterButton extends Component {
 
   render() {
     const props = this.props;
-    const { store } = props;
+    const { store } = this.context;
     const state = store.getState();
 
     return (
@@ -143,20 +147,24 @@ class FilterButton extends Component {
     );
   }
 }
+FilterButton.contextTypes = {
+  store: PropTypes.object
+}
 
-const Footer = ({ store }) => (
+
+const Footer = () => (
   <p style={{ position: 'fixed', bottom: '0', width: '100%' }}>
     <hr />
-    <FilterButton filter='SHOW_ALL' store={store}> All </FilterButton>{' '}
-    <FilterButton filter='SHOW_ACTIVE' store={store}> Active </FilterButton>{' '}
-    <FilterButton filter='SHOW_COMPLETED' store={store}> Completed </FilterButton>
+    <FilterButton filter='SHOW_ALL'> All </FilterButton>{' '}
+    <FilterButton filter='SHOW_ACTIVE'> Active </FilterButton>{' '}
+    <FilterButton filter='SHOW_COMPLETED'> Completed </FilterButton>
   </p>
 );
 
 class VisibleTodoList extends Component {
 
   componentDidMount() {
-    const { store } = this.props;
+    const { store } = this.context;
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
 
@@ -166,7 +174,7 @@ class VisibleTodoList extends Component {
 
   render() {
     const props = this.props;
-    const { store } = props;
+    const { store } = this.context;
     const state = store.getState();
 
     return (
@@ -181,7 +189,11 @@ class VisibleTodoList extends Component {
   }
 }
 
-const TodoApp = ({ store }) => (
+VisibleTodoList.contextTypes = {
+  store: PropTypes.object
+}
+
+const TodoApp = () => (
   <div className="App">
 
     <header className="App-header">
@@ -191,17 +203,35 @@ const TodoApp = ({ store }) => (
 
     <div className="App-intro">
       <br />
-      <AddTodo store={store} />
+      <AddTodo />
       <br /><br />
-      <VisibleTodoList store={store} />
-      <Footer store={store} />
+      <VisibleTodoList />
+      <Footer />
     </div>
 
   </div>
 );
 
+class Provider extends Component {
+  getChildContext() {
+    return {
+      store: this.props.store
+    }
+  }
+  render() {
+    return this.props.children;
+  }
+}
+
+Provider.childContextTypes = {
+  store: PropTypes.object
+}
+
 ReactDOM.render((
-  <TodoApp store={createStore(todoApp)} />
+  <Provider store={createStore(todoApp)}>
+    <TodoApp />
+  </Provider>
+
 ), document.getElementById('root'));
 
 registerServiceWorker();
