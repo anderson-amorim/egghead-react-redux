@@ -52,8 +52,6 @@ const visibilityFilter = (state = 'SHOW_ALL', action) => {
   }
 }
 
-const todoApp = combineReducers({ todos, visibilityFilter });
-
 const getVisibleTodos = (todos, filter) => {
   switch (filter) {
     case 'SHOW_ALL':
@@ -196,6 +194,8 @@ const TodoApp = () => (
 
   </div>
 );
+
+const todoApp = combineReducers({ todos, visibilityFilter });
 
 ReactDOM.render((
   <Provider store={createStore(todoApp)}>
