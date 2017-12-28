@@ -2,7 +2,7 @@ import ReactDOM from 'react-dom';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { combineReducers, createStore } from 'redux';
-import { Provider } from 'react-redux';
+import { Provider, connect } from 'react-redux';
 import './index.css';
 import logo from './logo.svg';
 import './App.css';
@@ -162,37 +162,24 @@ const Footer = () => (
   </p>
 );
 
-class VisibleTodoList extends Component {
-
-  componentDidMount() {
-    const { store } = this.context;
-    this.unsubscribe = store.subscribe(() => this.forceUpdate());
+const mapStateToProps = (state) => {
+  return {
+    todos: getVisibleTodos(state.todos, state.visibilityFilter)
   }
+};
 
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
-
-  render() {
-    const props = this.props;
-    const { store } = this.context;
-    const state = store.getState();
-
-    return (
-      <TodoList
-        todos={
-          getVisibleTodos(state.todos, state.visibilityFilter)
-        }
-        onTodoClick={
-          id => store.dispatch({ type: 'TOGGLE_TODO', id })
-        } />
-    );
-  }
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onTodoClick: id => {
+      dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+    }
+  };
 }
 
-VisibleTodoList.contextTypes = {
-  store: PropTypes.object
-}
+const VisibleTodoList = connect(mapStateToProps, mapDispatchToProps)(TodoList);
 
 const TodoApp = () => (
   <div className="App">
