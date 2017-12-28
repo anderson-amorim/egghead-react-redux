@@ -117,38 +117,22 @@ const Button = ({ active, children, onClick }) => {
   );
 };
 
-class FilterButton extends Component {
-
-  componentDidMount() {
-    const { store } = this.context;
-    this.unsubscribe = store.subscribe(() => this.forceUpdate());
+const mapStateToButtonProps = (state, ownProps) => {
+  return {
+    active: ownProps.filter === state.visibilityFilter
   }
+};
 
-  componentWillUnmount() {
-    this.unsubscribe();
+const mapDispathToButtonProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => dispatch({
+      type: 'SET_VISIBILITY_FILTER',
+      filter: ownProps.filter
+    })
   }
+};
 
-  render() {
-    const props = this.props;
-    const { store } = this.context;
-    const state = store.getState();
-
-    return (
-      <Button
-        active={props.filter === state.visibilityFilter}
-        onClick={() => store.dispatch({
-          type: 'SET_VISIBILITY_FILTER',
-          filter: props.filter
-        })}>
-        {props.children}
-      </Button>
-    );
-  }
-}
-FilterButton.contextTypes = {
-  store: PropTypes.object
-}
-
+const FilterButton = connect(mapStateToButtonProps, mapDispathToButtonProps)(Button);
 
 const Footer = () => (
   <p style={{ position: 'fixed', bottom: '0', width: '100%' }}>
